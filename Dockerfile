@@ -14,4 +14,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 5004
 
 # Commande pour démarrer l'application
-CMD ["python3", "app.py"]
+CMD ["python", "app.py"]
+
