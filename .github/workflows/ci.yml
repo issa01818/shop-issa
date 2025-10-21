@@ -27,8 +27,10 @@ jobs:
 
       - name: ✅ Lancer les tests
         run: |
+          export PYTHONPATH="${PYTHONPATH}:$(pwd)"
           pytest
 
       - name: 🔐 Scanner le code (SAST - Bandit)
         run: |
           bandit -r app -ll
+
