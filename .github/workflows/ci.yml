@@ -34,3 +34,11 @@ jobs:
         run: |
           bandit -r app -ll
 
+      - name: 🐳 Build Docker image
+        run: |
+          docker build -t shop-issa:latest .
+
+      - name: 🔍 Scanner l’image avec Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          trivy image --exit-code 1 --severity HIGH,CRITICAL shop-issa:latest
