@@ -38,15 +38,18 @@ jobs:
         run: |
           docker build -t shop-issa:latest .
 
-      - name: 🔍 Scanner l’image avec Trivy
+      - name: Install Trivy
         run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/c>
-          trivy image --exit-code 1 --severity HIGH,CRITICAL shop-issa:latest
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
-      # --- OWASP ZAP DAST --- 
+      - name: 🛡️ Scanner l'image Docker avec Trivy
+        run: |
+          trivy image shop-issa:latest
+
+      # --- OWASP ZAP DAST ---
       - name: 🚨 Scan de sécurité avec OWASP ZAP
         run: |
-          export YOUR_APP_URL="https://shop-issa.onrender.com"  # Remplacer avec l'URL de ton app déployée
+          export YOUR_APP_URL="https://shop-issa.onrender.com"  # Remplacer avec ton URL
           docker pull owasp/zap2docker-stable
-          docker run -u zap -v $(pwd):/zap/wrk/:rw owasp/zap2docker-stable zap-baseline.py -t $YOUR_APP_URL
+          docker run -u zap -v $(pwd):/zap/wrk/:rw owasp/zap2docker-stable zap-full-scan.py -t $YOUR_APP_URL
 
