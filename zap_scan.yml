@@ -1,0 +1,27 @@
+name: ZAP Security Scan
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  zap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Setup ZAP Docker Image
+        uses: docker/setup-buildx-action@v1
+
+      - name: Run ZAP Scan
+        run: |
+          docker pull owasp/zap2docker-stable
+          docker run -t owasp/zap2docker-stable zap-full-scan.py -t https://shop-issa.onrender.com -r zap_report.html
+
+      - name: Upload ZAP report as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: zap-report
+          path: zap_report.html

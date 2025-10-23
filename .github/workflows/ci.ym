@@ -1,0 +1,64 @@
+name: CI Workflow (SAST & DAST)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Job pour l'analyse SonarQube (SAST)
+  sonar:
+    runs-on: ubuntu-latest
+    steps:
+      # Etape 1: Checkout du code
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      # Etape 2: Configuration de Python (si tu utilises Python dans ton application)
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'  # Utilise la version de Python qui correspond à ton projet
+
+      # Etape 3: Installer les dépendances Python (si nécessaire)
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # Si tu utilises un fichier requirements.txt
+
+      # Etape 4: Exécuter SonarQube Scan
+      - name: SonarQube Scan
+        uses: SonarSource/sonarcloud-github-action@v1
+        with:
+          sonar-project-key: your-sonar-project-key  # Remplace par ton propre projet SonarQube
+          sonar-host-url: https://sonarcloud.io  # Utilise l'URL de SonarCloud, ou celle de ton propre serveur SonarQube
+          sonar-token: ${{ secrets.SONAR_TOKEN }}  # Assure-toi que SONAR_TOKEN est ajouté dans les GitHub Secrets
+
+  # Job pour le scan ZAP (DAST)
+  zap:
+    runs-on: ubuntu-latest
+    steps:
+      # Etape 1: Checkout du code
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      # Etape 2: Configuration Docker pour ZAP
+      - name: Setup ZAP Docker Image
+        uses: docker/setup-buildx-action@v1
+
+      # Etape 3: Lancer le scan OWASP ZAP sur ton application en ligne
+      - name: Run ZAP Scan
+        run: |
+          docker pull owasp/zap2docker-stable
+          docker run -t owasp/zap2docker-stable zap-full-scan.py -t https://shop-issa.onrender.com -r zap_report.html
+
+      # Etape 4: Télécharger le rapport ZAP (HTML)
+      - name: Upload ZAP report as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: zap-report
+          path: zap_report.html
+
