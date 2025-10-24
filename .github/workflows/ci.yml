@@ -34,22 +34,14 @@ jobs:
         run: |
           bandit -r app -ll
 
-      - name: 🐳 Build Docker image
+      # Étape pour scanner les dépendances avec OWASP Dependency-Check
+      - name: 🔍 Scanner les dépendances avec OWASP Dependency-Check
         run: |
-          docker build -t shop-issa:latest .
+          docker pull owasp/dependency-check
+          docker run --rm -v $(pwd):/src owasp/dependency-check --scan /src --format HTML --out /src/dependency-check-report.html
 
-      - name: Install Trivy
+      # Optionnel : afficher le rapport HTML après le scan
+      - name: Afficher le rapport de sécurité
         run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-
-      - name: 🛡️ Scanner l'image Docker avec Trivy
-        run: |
-          trivy image shop-issa:latest
-
-      # --- OWASP ZAP DAST ---
-      - name: 🚨 Scan de sécurité avec OWASP ZAP
-        run: |
-          export YOUR_APP_URL="https://shop-issa.onrender.com"  # Remplacer avec ton URL
-          docker pull owasp/zap2docker-stable
-          docker run -u zap -v $(pwd):/zap/wrk/:rw owasp/zap2docker-stable zap-full-scan.py -t $YOUR_APP_URL
+          cat dependency-check-report.html
 
